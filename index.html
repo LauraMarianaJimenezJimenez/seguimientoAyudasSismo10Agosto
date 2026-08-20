@@ -159,7 +159,7 @@
 </footer>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqulnldy4-pxrrImuTS7Z_ZTCfd65h7piwpK1Xxw3xbUWihfJw7FAJm7NW_BCB1Q/pub?gid=1297239244&single=true&output=csv"; // <-- pega aquí el link publicado de la hoja REGISTRO (no Resumen)
+const CSV_URL = "https://docs.google.com/spreadsheets/d/1PeUQK6HnWzRDdzIRZKcIilnJl8YqvzQJ/gviz/tq?tqx=out:csv&gid=1297239244"; // <-- pega aquí el link publicado de la hoja REGISTRO (no Resumen)
 const REFRESH_MS = 60000;
 
 const CATEGORIAS = [
@@ -203,7 +203,25 @@ function parseCSV(text){
   if(field!=='' || row.length){ row.push(field); rows.push(row); }
   return rows;
 }
-function numberOrZero(v){ const n=parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; }
+function numberOrZero(v){
+  if(v === null || v === undefined) return 0;
+  let s = String(v).trim();
+  if(s === '') return 0;
+  s = s.replace(/\s/g,'');
+  const hasComma = s.includes(',');
+  const hasDot = s.includes('.');
+  if(hasComma && hasDot){
+    if(s.lastIndexOf(',') > s.lastIndexOf('.')){
+      s = s.replace(/\./g,'').replace(',', '.'); // comma is decimal (es-CO style)
+    } else {
+      s = s.replace(/,/g,''); // dot is decimal, comma was thousands
+    }
+  } else if(hasComma && !hasDot){
+    s = s.replace(',', '.'); // lone comma treated as decimal separator
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
 function fmt(n){ return n.toLocaleString('es-CO',{maximumFractionDigits:1}); }
 
 function aggregate(rows){
